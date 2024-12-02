@@ -1,3 +1,9 @@
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![ROS2](https://img.shields.io/badge/ROS2-Humble-blue)](https://docs.ros.org/en/humble/)
+[![C++](https://img.shields.io/badge/C++-17-blue.svg)](https://isocpp.org/)
+[![FastDDS](https://img.shields.io/badge/FastDDS-2.11.2-blue)](https://fast-dds.docs.eprosima.com/)
+[![SQLite](https://img.shields.io/badge/SQLite-3.0-blue)](https://www.sqlite.org/)
+
 # onDevice
 ‘무인이동체 감시장비에 탑재되는 환경 적응형 온디바이스 소프트웨어 기술 개발’ 과제는, 무인이동체 탑재 가능한 대공위협 감시장비의 고장 단절 환경 적응형 온디바이스 지능 소프트웨어(이하 ‘감시장비 탑재형 환경 적응형 온디바이스 소프트웨어 시스템’)를 개발하는 것을 목표로 한다.
 
