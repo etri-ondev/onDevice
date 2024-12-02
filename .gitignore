@@ -1,0 +1,110 @@
+# ROS 2 관련
+install/
+build/
+log/
+
+# FastDDS 관련
+*.xml.rpcdds
+*.dll.rpcdds
+fastrtps.xml
+*.history
+*.db-journal
+
+# SQLite 관련
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+*.sqlite-journal
+
+# C++ 관련
+# 컴파일된 객체 파일
+*.slo
+*.lo
+*.o
+*.obj
+
+# 프리컴파일된 헤더
+*.gch
+*.pch
+
+# 컴파일된 동적 라이브러리
+*.so
+*.dylib
+*.dll
+
+# 컴파일된 정적 라이브러리
+*.lai
+*.la
+*.a
+*.lib
+
+# 실행 파일
+*.exe
+*.out
+*.app
+
+# CMake 관련
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+Testing/
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps
+.cmake/
+build/
+*.make
+
+# IDE 관련
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# CLion
+.idea/
+cmake-build-*/
+
+# Eclipse
+.project
+.cproject
+.settings/
+
+# 시스템 관련
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+*.stackdump
+[Dd]esktop.ini
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# 로그 및 임시 파일
+*.log
+*.tmp
+temp/
+logs/
+
+# 기타
+.env
+.env.*
+*.swp
+*.bak
