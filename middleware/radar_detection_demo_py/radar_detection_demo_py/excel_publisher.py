@@ -145,3 +145,45 @@ class CsvPublisher(Node):
         csv = pathlib.Path(csv_path)
         if not csv.exists():
             raise FileNotFoundError(f'CSV not found: {csv}')
+        
+        raw = pd.read_csv(csv)
+        present = [c for c in COLUMN_MAP.keys() if c in raw.columns]
+        df = raw[present].rename(columns=COLUMN_MAP).copy()
+
+        if 'alert_level_sub' not in df.columns:
+            df['alert_level_sub'] = 0 
+
+        msg_fields = RadarDetection.get_fields_and_field_types().keys()
+        for f in msg_fields:
+            if f in df.columns:
+                continue
+            if f in INT_FIELDS:
+                df[f] = 0
+            elif f in FLT_FIELDS:
+                df[f] = 0.0
+            elif f in STR_FIELDS:
+                df[f] = ''
+            else:
+                df[f] = '' if f.endswith('_id') or f.endswith('_name') else 0
+
+        for f in df.columns:
+            try:
+                if f in INT_FIELDS:
+                    df[f] = df[f].fillna(0).astype(int)
+                elif f in FLT_FIELDS:
+                    df[f] = df[f].fillna(0.0).astype(float)
+                elif f in STR_FIELDS:
+                    df[f] = df[f].fillna('').astype(str)
+                else:
+                    df[f] = df[f].astype(str)
+            except Exception:
+                if f in INT_FIELDS:
+                    df[f] = 0
+                elif f in FLT_FIELDS:
+                    df[f] = 0.0
+                else:
+                    df[f] = ''
+
+        self.df   = df.reset_index(drop=True)
+        self.rows = len(self.df)
+        self.idx  = 0
