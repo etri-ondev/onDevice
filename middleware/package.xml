@@ -12,4 +12,8 @@
     <depend>rclpy</depend>
     <depend>std_msgs</depend>
     <depend>radar_detection_msgs</depend>
+
+    <exec_depend>python3-pandas</exec_depend>
+    <exec_depend>python3-openpyxl</exec_depend>
+    <exec_depend>python3-numpy</exec_depend>
 </package>
