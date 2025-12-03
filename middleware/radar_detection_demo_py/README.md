@@ -59,3 +59,6 @@ You can configure the nodes using environment variables:
 - `ETH_IF`: Ethernet interface name to monitor (default: `enP4p1s0`)
 - `BT_IF`: Bluetooth/Fallback interface name (default: `bt0`)
 - `BT_PORT`: UDP port for fallback communication (default: `9999`)
+
+## License
+This project is licensed under the Apache License 2.0.
