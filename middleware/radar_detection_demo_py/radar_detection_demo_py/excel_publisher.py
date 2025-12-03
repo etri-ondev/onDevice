@@ -187,3 +187,41 @@ class CsvPublisher(Node):
         self.df   = df.reset_index(drop=True)
         self.rows = len(self.df)
         self.idx  = 0
+
+        # ── ROS2 Publisher ──────────────────────────────────────────
+        qos = QoSProfile(depth=10,
+                         reliability=ReliabilityPolicy.BEST_EFFORT,
+                         history=HistoryPolicy.KEEP_LAST)
+        self.pub  = self.create_publisher(RadarDetection, 'radar/table', qos_profile=qos)
+        self.stat = self.create_publisher(Float32,        'radar/pub_stats', 5)
+
+        # ── 타이밍 ──────────────────────────────────────────────────
+        self.base     = max(0.01, 1.0 / self.rate_hz)
+        self.next     = time.time()
+        self.sent_sec = 0
+        self.sec_mark = int(time.time())
+    
+    def _row_to_msg(self, row: pd.Series) -> RadarDetection:
+        d = {}
+        for f in RadarDetection.get_fields_and_field_types().keys():
+            if f in row:
+                v = row[f]
+            else:
+                if f in INT_FIELDS:   v = 0
+                elif f in FLT_FIELDS: v = 0.0
+                elif f in STR_FIELDS: v = ''
+                else:                 v = 0
+            try:
+                if f in INT_FIELDS:   v = int(v)
+                elif f in FLT_FIELDS: v = float(v)
+                elif f in STR_FIELDS: v = str(v)
+            except Exception:
+                if f in INT_FIELDS:   v = 0
+                elif f in FLT_FIELDS: v = 0.0
+                elif f in STR_FIELDS: v = ''
+            d[f] = v
+
+        if 'time' in d:
+            d['time'] = time.strftime('%Y-%m-%dT%H:%M:%S.%fZ', time.gmtime())
+        return RadarDetection(**d)
+        
