@@ -6,4 +6,6 @@
     <description>ROS2 package for radar detection demo</description>
     <maintainer email="tglee@etri.re.kr">ETRI Researcher</maintainer>
     <license>Apache-2.0</license>
+
+    <buildtool_depend>ament_python</buildtool_depend>
 </package>
