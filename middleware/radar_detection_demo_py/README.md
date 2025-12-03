@@ -31,3 +31,23 @@ It includes nodes for publishing data from Excel files, bridging UDP traffic to 
 cd ~/ros2_ws
 colcon build --packages-select radar_detection_demo_py
 source install/setup.bash
+```
+
+## Usage
+
+### Run Publisher
+```bash
+ros2 run radar_detection_demo_py excel_publisher
+```
+
+### Run Subscriber
+
+```bash
+ros2 run radar_detection_demo_py radar_subscriber
+```
+
+### Run UDP Bridge
+
+```bash
+ros2 run radar_detection_demo_py udp2ros_bridge
+```
