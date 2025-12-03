@@ -23,3 +23,7 @@ class RadarSubscriber(Node):
         qos = QoSProfile(depth=10,
                          reliability=ReliabilityPolicy.BEST_EFFORT,
                          history=HistoryPolicy.KEEP_LAST)
+        self.create_subscription(RadarDetection, 'radar/table', self._cb, qos)
+    
+    def _cb(self, msg: RadarDetection):
+        pass
