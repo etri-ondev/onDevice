@@ -23,3 +23,10 @@ from radar_detection_msgs.msg import RadarDetection
 class Udp2Ros(Node):
     def __init__(self):
         super().__init__('udp2ros_bridge')
+
+        # ROS publisher (BEST_EFFORT)
+        qos = QoSProfile(depth=10,
+                         reliability=ReliabilityPolicy.BEST_EFFORT,
+                         history=HistoryPolicy.KEEP_LAST)
+        self.pub  = self.create_publisher(RadarDetection, 'radar/table', qos)
+        self.stat = self.create_publisher(Float32,        'radar/udp_rx_rate', 5)
