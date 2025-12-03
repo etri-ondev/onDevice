@@ -41,3 +41,26 @@ class Udp2Ros(Node):
         self.sock.bind(('::', port, 0, ifidx))
         self.sock.setblocking(False)
         self.get_logger().info(f'UDP6 listen on [{bt_if}] :{port}')
+
+    def _rx_once(self):
+        r, _, _ = select.select([self.sock], [], [], 0)
+        if not r:
+            return
+
+        try:
+            data, addr = self.sock.recvfrom(4096)
+        except BlockingIOError:
+            return
+
+        self.get_logger().info(f'UDP rx {len(data)}B from {addr}')
+        self.get_logger().info(f'head: {data[:120]!r}')
+
+        try:
+            txt = data.decode('utf-8', errors='replace').strip()
+            obj = json.loads(txt)
+            if not isinstance(obj, dict):
+                self.get_logger().warn('payload is not a JSON object')
+                return
+        except Exception as e:
+            self.get_logger().warn(f'JSON decode failed: {e}')
+            return
