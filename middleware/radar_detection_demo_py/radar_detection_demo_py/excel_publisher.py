@@ -332,3 +332,29 @@ class CsvPublisher(Node):
                 pass
             self.sent_sec = 0
             self.sec_mark = sec
+
+
+def main():
+    print("Olla")
+    csv_env = os.environ.get('CSV_PATH')
+    if csv_env:
+        csv_path = pathlib.Path(csv_env)
+    else:
+        csv_path = pathlib.Path.home() / 'Project' / 'ROS2_FS' / 'data' / 'RadarDetectionTable.csv'
+
+    rclpy.init(args=sys.argv)
+    node = CsvPublisher(str(csv_path))
+
+    from rclpy.executors import SingleThreadedExecutor
+    exe = SingleThreadedExecutor()
+    exe.add_node(node)
+    try:
+        exe.spin()
+    finally:
+        exe.shutdown()
+        node.destroy_node()
+        rclpy.shutdown()
+
+
+if __name__ == '__main__':
+    main()
