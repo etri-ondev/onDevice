@@ -17,6 +17,7 @@ from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 from radar_detection_msgs.msg import RadarDetection
 
+
 class RadarSubscriber(Node):
     def __init__(self):
         super().__init__('radar_subscriber')
@@ -29,3 +30,17 @@ class RadarSubscriber(Node):
         self.get_logger().info(
             f'ID={msg.full_id}  Range={msg.range:.1f} m  '
             f'AbsVel={msg.absolute_velocity:.1f} m/s  Alert={msg.alert_level}')
+
+
+def main():
+    rclpy.init()
+    node = RadarSubscriber()
+    try:
+        rclpy.spin(node)
+    finally:
+        node.destroy_node()
+        rclpy.shutdown()
+
+
+if __name__ == '__main__':
+    main()
