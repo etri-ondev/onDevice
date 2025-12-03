@@ -24,9 +24,20 @@ class Udp2Ros(Node):
     def __init__(self):
         super().__init__('udp2ros_bridge')
 
+        bt_if   = os.environ.get('BT_IF', 'bt0')
+        port    = int(os.environ.get('BT_PORT', '9999'))
+        ifidx   = socket.if_nametoindex(bt_if)
+
         # ROS publisher (BEST_EFFORT)
         qos = QoSProfile(depth=10,
                          reliability=ReliabilityPolicy.BEST_EFFORT,
                          history=HistoryPolicy.KEEP_LAST)
         self.pub  = self.create_publisher(RadarDetection, 'radar/table', qos)
         self.stat = self.create_publisher(Float32,        'radar/udp_rx_rate', 5)
+
+        self.sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
+        self.sock.setsockopt(1, 25, (bt_if + '\0').encode())  # SO_BINDTODEVICE
+        self.sock.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 1)
+        self.sock.bind(('::', port, 0, ifidx))
+        self.sock.setblocking(False)
+        self.get_logger().info(f'UDP6 listen on [{bt_if}] :{port}')
