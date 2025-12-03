@@ -236,6 +236,45 @@ class CsvPublisher(Node):
             f"ETH={self.eth_iface} • BT={self.bt_iface} • UDP_Fallback={'ON' if self._udp_dst else 'OFF'}"
         )
     
+    def _is_link_really_up(self, iface: str) -> bool:
+        def _read(p):
+            try:
+                with open(p, 'r') as f:
+                    return f.read().strip()
+            except Exception:
+                return ''
+
+        carrier   = _read(f"/sys/class/net/{iface}/carrier") == '1'
+        oper_up   = _read(f"/sys/class/net/{iface}/operstate") == 'up'
+        has_ipv4  = False
+        try:
+            out = subprocess.run(["ip", "-4", "-o", "addr", "show", "dev", iface],
+                                 text=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+            has_ipv4 = bool(out.stdout.strip())
+        except Exception:
+            pass
+        return carrier and oper_up and has_ipv4
+
+    def _watch_eth_and_switch(self, iface: str):
+        last_state = None
+        same = 0
+        while rclpy.ok():
+            up = self._is_link_really_up(iface)
+            if up == last_state:
+                same += 1
+            else:
+                same = 1
+                last_state = up
+
+            if same >= 3:  # debounce
+                if up and self._fallback:
+                    self._fallback = False
+                    self.get_logger().info(f"{iface} link UP → UDP fallback DISABLED")
+                elif (not up) and (not self._fallback):
+                    self._fallback = True
+                    self.get_logger().warn(f"{iface} link DOWN → UDP fallback ENABLED (bt0)")
+            time.sleep(0.5)
+    
     def _row_to_msg(self, row: pd.Series) -> RadarDetection:
         d = {}
         for f in RadarDetection.get_fields_and_field_types().keys():
