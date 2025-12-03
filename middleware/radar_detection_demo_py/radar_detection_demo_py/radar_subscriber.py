@@ -26,4 +26,6 @@ class RadarSubscriber(Node):
         self.create_subscription(RadarDetection, 'radar/table', self._cb, qos)
     
     def _cb(self, msg: RadarDetection):
-        pass
+        self.get_logger().info(
+            f'ID={msg.full_id}  Range={msg.range:.1f} m  '
+            f'AbsVel={msg.absolute_velocity:.1f} m/s  Alert={msg.alert_level}')
