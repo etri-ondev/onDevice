@@ -18,3 +18,16 @@ It includes nodes for publishing data from Excel files, bridging UDP traffic to 
 ### 3. radar_subscriber
 - Subscribes to the `radar/table` topic.
 - Logs received detection data to the console for verification.
+
+## Installation
+
+### Prerequisites
+- ROS 2 Humble
+- Python 3.10+
+- Python packages: `pandas`, `openpyxl`, `netifaces` (optional)
+
+### Build
+```bash
+cd ~/ros2_ws
+colcon build --packages-select radar_detection_demo_py
+source install/setup.bash
