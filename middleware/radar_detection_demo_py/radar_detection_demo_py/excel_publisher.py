@@ -200,6 +200,41 @@ class CsvPublisher(Node):
         self.next     = time.time()
         self.sent_sec = 0
         self.sec_mark = int(time.time())
+
+        # ── UDP 폴백 준비 ───────────────────────────────────────────
+        self._fallback = False     
+        self._udp = None
+        self._udp_dst = None
+
+        if self.b_ll:
+            try:
+                ifidx = socket.if_nametoindex(self.bt_iface) 
+                s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
+                try:
+                    s.setsockopt(1, 25, (self.bt_iface + '\0').encode())
+                except Exception:
+                    pass
+                s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 1)
+                self._udp = s
+                self._udp_dst = (self.b_ll, self.bt_port, 0, ifidx)
+                self.get_logger().info(f"UDP fallback ready → {self._udp_dst}")
+            except Exception as e:
+                self.get_logger().warn(f"UDP fallback init failed: {e}")
+                self._udp = None
+                self._udp_dst = None
+        else:
+            self.get_logger().warn("UDP fallback disabled (env B_LL not set)")
+
+        threading.Thread(target=self._watch_eth_and_switch,
+                         args=(self.eth_iface,),
+                         daemon=True).start()
+
+        self.create_timer(0.01, self._tick)
+
+        self.get_logger().info(
+            f"Loaded {self.rows} rows • rate≈{self.rate_hz} Hz • "
+            f"ETH={self.eth_iface} • BT={self.bt_iface} • UDP_Fallback={'ON' if self._udp_dst else 'OFF'}"
+        )
     
     def _row_to_msg(self, row: pd.Series) -> RadarDetection:
         d = {}
@@ -224,4 +259,37 @@ class CsvPublisher(Node):
         if 'time' in d:
             d['time'] = time.strftime('%Y-%m-%dT%H:%M:%S.%fZ', time.gmtime())
         return RadarDetection(**d)
-        
+    
+    def _tick(self):
+        now = time.time()
+        if now < self.next:
+            return
+
+        row = self.df.iloc[self.idx]
+        msg = self._row_to_msg(row)
+        self.pub.publish(msg)
+
+        if self._fallback and self._udp and self._udp_dst:
+            try:
+                payload = {k: getattr(msg, k) for k in msg.get_fields_and_field_types().keys()}
+                self._udp.sendto(json.dumps(payload).encode('utf-8'), self._udp_dst)
+                if self.verbose:
+                    self.get_logger().info(f"▸ pub {self.idx+1}/{self.rows} via UDP+ROS2")
+            except Exception as e:
+                self.get_logger().warn(f"UDP fallback send failed: {e}")
+        else:
+            if self.verbose:
+                self.get_logger().info(f"▸ pub {self.idx+1}/{self.rows} via ROS2")
+
+        self.idx  = (self.idx + 1) % self.rows
+        self.next = now + self.base + self.base * 0.3 * random.uniform(-1, 1)
+
+        sec = int(now)
+        self.sent_sec += 1
+        if sec != self.sec_mark:
+            try:
+                self.stat.publish(Float32(data=float(self.sent_sec)))
+            except Exception:
+                pass
+            self.sent_sec = 0
+            self.sec_mark = sec
