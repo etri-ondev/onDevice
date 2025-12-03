@@ -51,3 +51,11 @@ ros2 run radar_detection_demo_py radar_subscriber
 ```bash
 ros2 run radar_detection_demo_py udp2ros_bridge
 ```
+
+## Configuration
+You can configure the nodes using environment variables:
+
+- `CSV_PATH`: Path to the input CSV file
+- `ETH_IF`: Ethernet interface name to monitor (default: `enP4p1s0`)
+- `BT_IF`: Bluetooth/Fallback interface name (default: `bt0`)
+- `BT_PORT`: UDP port for fallback communication (default: `9999`)
