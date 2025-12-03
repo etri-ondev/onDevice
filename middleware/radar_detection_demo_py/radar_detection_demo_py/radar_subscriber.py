@@ -20,3 +20,6 @@ from radar_detection_msgs.msg import RadarDetection
 class RadarSubscriber(Node):
     def __init__(self):
         super().__init__('radar_subscriber')
+        qos = QoSProfile(depth=10,
+                         reliability=ReliabilityPolicy.BEST_EFFORT,
+                         history=HistoryPolicy.KEEP_LAST)
