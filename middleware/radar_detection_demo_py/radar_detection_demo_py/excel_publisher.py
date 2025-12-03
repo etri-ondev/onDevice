@@ -51,6 +51,80 @@ STR_FIELDS = {
     'full_id', 'view_id', 'time'
 }
 
+
+def _read(path: str) -> str:
+    try:
+        with open(path, 'r') as f:
+            return f.read().strip()
+    except Exception:
+        return ""
+
+
+def is_iface_link_up(iface: str) -> bool:
+    carrier = _read(f"/sys/class/net/{iface}/carrier")
+    oper    = _read(f"/sys/class/net/{iface}/operstate")
+    if carrier == '1' and oper == 'up':
+        return True
+    return False
+
+
+def has_ipv4_addr(iface: str) -> bool:
+    try:
+        out = subprocess.run(["ip", "-4", "-o", "addr", "show", "dev", iface],
+                             text=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+        return bool(out.stdout.strip())
+    except Exception:
+        return False
+
+
+class IfaceWatcher:
+    def __init__(self, iface: str, on_up, on_down, interval=0.5, debounce_cnt=3):
+        self.iface = iface
+        self.on_up = on_up
+        self.on_down = on_down
+        self.interval = interval
+        self.debounce_cnt = debounce_cnt
+        self._stop = threading.Event()
+        self._t = threading.Thread(target=self._run, daemon=True)
+        self._state = None  # True=UP, False=DOWN
+
+    def start(self):
+        self._t.start()
+
+    def stop(self):
+        self._stop.set()
+        self._t.join(timeout=1.0)
+
+    def _run(self):
+        last_seen = None
+        same_cnt = 0
+        while not self._stop.is_set():
+            up = is_iface_link_up(self.iface)
+            if up and not has_ipv4_addr(self.iface):
+                up = False
+
+            if up == last_seen:
+                same_cnt += 1
+            else:
+                same_cnt = 1
+                last_seen = up
+
+            if same_cnt >= self.debounce_cnt and up != self._state:
+                self._state = up
+                try:
+                    if up:
+                        self.on_up()
+                    else:
+                        self.on_down()
+                except Exception:
+                    pass
+            time.sleep(self.interval)
+
+
+def _run(cmd, check=False):
+    return subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, check=check)
+
+
 class CsvPublisher(Node):
     def __init__(self, csv_path: str):
         super().__init__('excel_radar_publisher')
