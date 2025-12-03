@@ -11,4 +11,5 @@
 
     <depend>rclpy</depend>
     <depend>std_msgs</depend>
+    <depend>radar_detection_msgs</depend>
 </package>
