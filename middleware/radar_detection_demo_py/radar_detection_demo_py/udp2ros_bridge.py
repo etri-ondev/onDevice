@@ -42,6 +42,10 @@ class Udp2Ros(Node):
         self.sock.setblocking(False)
         self.get_logger().info(f'UDP6 listen on [{bt_if}] :{port}')
 
+        self._rx_count = 0
+        self._sec_mark = 0
+        self.create_timer(0.01, self._rx_once)
+
     def _rx_once(self):
         r, _, _ = select.select([self.sock], [], [], 0)
         if not r:
@@ -64,3 +68,24 @@ class Udp2Ros(Node):
         except Exception as e:
             self.get_logger().warn(f'JSON decode failed: {e}')
             return
+        
+        fields = RadarDetection.get_fields_and_field_types().keys()
+        d = {f: obj[f] for f in fields if f in obj}
+
+        try:
+            msg = RadarDetection(**d)
+        except Exception as e:
+            self.get_logger().warn(f'MSG build failed: {e}')
+            return
+
+        self.pub.publish(msg)
+        self._rx_count += 1
+
+        now = int(self.get_clock().now().nanoseconds / 1e9)
+        if now != self._sec_mark:
+            try:
+                self.stat.publish(Float32(data=float(self._rx_count)))
+            except Exception:
+                pass
+            self._rx_count = 0
+            self._sec_mark = now
