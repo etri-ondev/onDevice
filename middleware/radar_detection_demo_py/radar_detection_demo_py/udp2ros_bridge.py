@@ -89,3 +89,13 @@ class Udp2Ros(Node):
                 pass
             self._rx_count = 0
             self._sec_mark = now
+
+
+def main():
+    rclpy.init()
+    rclpy.spin(Udp2Ros())
+    rclpy.shutdown()
+
+
+if __name__ == '__main__':
+    main()
